@@ -1,11 +1,9 @@
-#include <common.h>
 #include "string.h"
 
 size_t strlen(const char *s) {
 	size_t i = 0;
-	while (*s != '\0') {
-		s++; i++;
-	}
+	while (*s++ != '\0')
+		i++;
 
 	return i;
 }
@@ -34,4 +32,42 @@ void *memset(void *s, int c, size_t n) {
 
 	// shit memset
 	return p;
+}
+
+void reverse(char *s, int len) {
+	char *p1 = s;
+	char *p2 = s + len - 1;
+	while (p1 < p2) {
+		char tmp = *p1;
+		*p1++ = *p2;
+		*p2-- = tmp;
+	}
+}
+
+void itoa(int n, char s[]) {
+	int i, sign;
+	if ((sign = n) < 0)
+		n = -n;
+	i = 0;
+	do {
+		s[i++] = n % 10 + '0';
+	} while ((n /= 10) > 0);
+	if (sign < 0)
+		s[i++] = '-';
+	s[i] = '\0';
+	reverse(s, strlen(s));
+}
+
+char* utoa(uint64_t n) {
+	static char text[20];
+	int i = 0;
+
+	text[19] = 0;	/* null terminator */
+	do {
+		--i;
+		text[i] = (n % 10)+'0';
+		n /= 10;
+	} while (n);
+
+	return &text[i];
 }
