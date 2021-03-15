@@ -29,8 +29,8 @@ int kmain(multiboot_info_t *info) {
 	isr_install();
 
 	/* cause a page fault since -1 is unmapped */
-	int *a = (int *)-1;
-	*a = 1;
+	// int *a = (int *)-1;
+	// *a = 1;
 
 	pmm_init(info);
 	klog(KLOG_INFO, "[kmain.c] init pmm complete\n");

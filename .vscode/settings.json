@@ -6,6 +6,7 @@
         "stdint.h": "c",
         "limits.h": "c",
         "isr.h": "c",
-        "idt.h": "c"
+        "idt.h": "c",
+        "string.h": "c"
     }
 }

@@ -36,7 +36,7 @@ void kprintf(const char *fmt, ...) {
 		}
 		else if (fmt[i] == '%' && fmt[i+1] == 'd') {
 			int d = va_arg(args, int);
-			char* s = itoa(d);
+			char* s = itoa(d, 10);
 
 			while (*s != '\0') {
 				vga_putchar(*s++);

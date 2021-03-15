@@ -155,9 +155,9 @@ void isr_handler(registers_t *regs) {
 	e9_write("exception ");
 	e9_write(msg);
 	e9_write(", err code: ");
-	e9_write(itoa(regs->err_code));
+	e9_write(itoa(regs->err_code, 10));
 	e9_write(", RIP=");
-	e9_write(itoa(regs->rip));
+	e9_write(itoa(regs->rip, 10));
 	e9_write("\n");
 #endif
 

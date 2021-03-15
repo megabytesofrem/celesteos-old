@@ -1,13 +1,18 @@
 /**
- * string.c -- libc string implementation
+ * string.c -- string library functions
  * 
  * Authors:
  * 		Charlotte (charpointer)
  * 		Harry (harrego)
+ * 	
+ * With parts taken from the Linux kernel sources
  */
-
 #include "string.h"
 
+/**
+ * strlen - returns the length of the string s
+ * @param s: the string to measure
+ */
 size_t strlen(const char *s) {
 	size_t i = 0;
 	while (*s++ != '\0')
@@ -16,6 +21,24 @@ size_t strlen(const char *s) {
 	return i;
 }
 
+/**
+ * strcat - concatenate two NULL terminated strings together
+ * @param dest: the destination string
+ * @param src: the source string
+ */
+char *strcat(char *dest, const char *src) {
+	char *rdest = dest;
+	while (*dest) dest++;
+
+	while (*dest++ = *src++) ;
+	return rdest;
+}
+
+/**
+ * strcpy - copy a NULL terminated string src into dest
+ * @param dest: the destination string
+ * @param src: the source string to copy
+ */
 char *strcpy(char *dest, const char *src) {
 	char *saved = dest;
 
@@ -25,24 +48,24 @@ char *strcpy(char *dest, const char *src) {
 	return saved;
 }
 
-char *strcat(char *dest, const char *src) {
-	char *rdest = dest;
-	while (*dest) dest++;
+char *strncpy(char *dest, const char *src, size_t count) {
+	char *tmp = dest;
 
-	while (*dest++ = *src++) ;
-	return rdest;
+	while (count) {
+		if ((*tmp = *src) != 0)
+			src++;
+		tmp++;
+		count--;
+	}
+
+	return dest;
 }
 
-void *memset(void *s, int c, size_t n) {
-	unsigned char *p = s;
-	for (size_t i = 0; i < n; i++)
-		p[i] = c;
-
-	// shit memset
-	return p;
-}
-
-void reverse(char *s, int len) {
+/**
+ * strrev - reverses a string (in place)
+ * 
+ */
+void strrev(char *s, int len) {
 	char *p1 = s;
 	char *p2 = s + len - 1;
 	while (p1 < p2) {
@@ -52,7 +75,34 @@ void reverse(char *s, int len) {
 	}
 }
 
-char *itoa(int n) {
+/**
+ * memset - fill a region of memory with the given value
+ */
+void *memset(void *s, int c, size_t count) {
+	char *tmp = s;
+	while (count--)
+		*tmp++ = c;
+	return tmp;
+}
+
+/**
+ * memcpy - copy an area of memory to another
+ * @param dest: where to copy to
+ * @param src: the source area of memory to copy from
+ * @param count: the size of the area
+ */
+void *memcpy(void *dest, const void *src, size_t count) {
+	char *tmp = dest;
+	const char *s = src;
+
+	while (count--)
+		*tmp++ = *s++;
+	return dest;
+}
+
+/* non standard conversion functions */
+
+char *itoa(int n, int base) {
 	static char text[32];
 
 	int i, sign;
@@ -60,12 +110,12 @@ char *itoa(int n) {
 		n = -n;
 	i = 0;
 	do {
-		text[i++] = n % 10 + '0';
-	} while ((n /= 10) > 0);
+		text[i++] = n % base + '0';
+	} while ((n /= base) > 0);
 	if (sign < 0)
 		text[i++] = '-';
 	text[i] = '\0';
-	reverse(text, strlen(text));
+	strrev(text, strlen(text));
 
 	return text;
 }
