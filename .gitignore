@@ -63,4 +63,8 @@ dkms.conf
 build/
 x86_64-elf-cross/
 
+# Ignore memory dump stuff
+mem*
+dump*
+
 # End of https://www.gitignore.io/api/c,assembler
