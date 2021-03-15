@@ -4,6 +4,8 @@
         "stddef.h": "c",
         "stdbool.h": "c",
         "stdint.h": "c",
-        "limits.h": "c"
+        "limits.h": "c",
+        "isr.h": "c",
+        "idt.h": "c"
     }
 }

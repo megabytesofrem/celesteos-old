@@ -1,5 +1,5 @@
 /**
- * libk.h -- Provides useful kernel level utility functions
+ * libk.c -- Provides useful kernel level utility functions
  * 
  * Authors:
  * 		Charlotte (charpointer)
@@ -88,20 +88,16 @@ void klog(klog_level level, const char *s) {
 	switch (level) {
 		case KLOG_INFO:
 			vga_setcolor(vga_entry_color(VGA_COLOR_LGREY, VGA_COLOR_BLACK));
-			vga_write("[INFO] ", 7);
 			break;
 		case KLOG_WARN:
 			vga_setcolor(vga_entry_color(VGA_COLOR_LBROWN, VGA_COLOR_BLACK));
-			vga_write("[WARN] ", 7);
 			break;
 		case KLOG_ERROR:
 			vga_setcolor(vga_entry_color(VGA_COLOR_LRED, VGA_COLOR_BLACK));
-			vga_write("[ERR] ", 7);
 			break;
 		default: break;
 	}
 
-	vga_setcolor(vga_entry_color(VGA_COLOR_WHITE, VGA_COLOR_BLACK));
 	kputs(s);
 
 #ifdef LOG_TO_E9

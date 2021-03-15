@@ -1,5 +1,6 @@
 #include <lib/libk.h>
 #include <lib/string.h>
+#include <kernel/sys/isr.h>
 #include <kernel/sys/ports.h>
 #include <kernel/mm/pmm.h>
 
@@ -20,8 +21,16 @@ int kmain(multiboot_info_t *info) {
 	klog(KLOG_INFO, BOOT_MSG);
 
 	/* debug */
-	for (int i = 0; i < 2; i++)
-		klog(KLOG_INFO, DEBUG_MSGS[i]);
+	// for (int i = 0; i < 2; i++)
+	// 	klog(KLOG_INFO, DEBUG_MSGS[i]);
+
+	klog(KLOG_WARN, "we are going to cause a PF :D\n");
+	/* install ISRs */
+	isr_install();
+
+	/* cause a page fault since -1 is unmapped */
+	int *a = (int *)-1;
+	*a = 1;
 
 	pmm_init(info);
 	klog(KLOG_INFO, "[kmain.c] init pmm complete\n");
