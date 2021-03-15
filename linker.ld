@@ -12,7 +12,7 @@ SECTIONS
         *(.multiboot)
     }
 
-    /* Begin putting sections at kernel_phys_offfset + 0x100000 */
+    /* Begin putting sections at kernel_virt_offset */
     . += kern_virt_offset;
     .text ALIGN(4K) :  AT(ADDR(.text) - kern_virt_offset)
     {

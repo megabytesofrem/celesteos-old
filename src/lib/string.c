@@ -1,3 +1,11 @@
+/**
+ * string.c -- libc string implementation
+ * 
+ * Authors:
+ * 		Charlotte (charpointer)
+ * 		Harry (harrego)
+ */
+
 #include "string.h"
 
 size_t strlen(const char *s) {
@@ -44,21 +52,25 @@ void reverse(char *s, int len) {
 	}
 }
 
-void itoa(int n, char s[]) {
+char *itoa(int n) {
+	static char text[32];
+
 	int i, sign;
 	if ((sign = n) < 0)
 		n = -n;
 	i = 0;
 	do {
-		s[i++] = n % 10 + '0';
+		text[i++] = n % 10 + '0';
 	} while ((n /= 10) > 0);
 	if (sign < 0)
-		s[i++] = '-';
-	s[i] = '\0';
-	reverse(s, strlen(s));
+		text[i++] = '-';
+	text[i] = '\0';
+	reverse(text, strlen(text));
+
+	return text;
 }
 
-char* utoa(uint64_t n) {
+char *utoa(uint64_t n) {
 	static char text[20];
 	int i = 0;
 
