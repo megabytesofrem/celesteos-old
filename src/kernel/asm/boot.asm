@@ -93,7 +93,6 @@ higher_half:
 	; call out to kmain
 	extern kmain
 	call kmain
-	cli
 .hang: hlt
 	jmp .hang
 .end

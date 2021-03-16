@@ -21,10 +21,9 @@ int kmain(multiboot_info_t *info) {
 	klog(KLOG_INFO, BOOT_MSG);
 
 	// /* debug */
-	// for (int i = 0; i < 2; i++)
-	// 	klog(KLOG_INFO, DEBUG_MSGS[i]);
+	for (int i = 0; i < 2; i++)
+		klog(KLOG_INFO, DEBUG_MSGS[i]);
 
-	//klog(KLOG_WARN, "we are going to cause a PF :D\n");
 	/* install ISRs */
 	isr_install();
 
@@ -32,19 +31,18 @@ int kmain(multiboot_info_t *info) {
 	int *a = (int *)-1;
 	a = 1;
 
-	// ISR IS NEVER CALLED 
-	
 
 	// test pmm
-	//pmm_init(info);
-	// void *one = pmm_alloc(50);
+	pmm_init(info);
+	void *one = pmm_alloc(5);
 
 	// // TODO: add %x formatting to kprintf, klog
-	// kprintf("one is at address %ud\n", &one);
+	kprintf("one is at address %ud\n", &one);
 	// print_bitmap();
 
-	// pmm_free(one, 50);
-
-
+	pmm_free(one, 5);
 	klog(KLOG_INFO, "kmain.c: init pmm complete\n");
+
+	/* kmain should never return */
+	for (;;) ;
 }
