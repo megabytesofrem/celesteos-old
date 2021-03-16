@@ -6,12 +6,13 @@
 #define LOG_TO_E9 1
 
 typedef enum {
+	KLOG_NONE,
 	KLOG_INFO,
 	KLOG_WARN,
 	KLOG_ERROR
 } klog_level;
 
 void kputs(char *s);
-void klog(klog_level level, const char *s);
+void klog(klog_level level, const char *fmt, ...);
 
 #endif

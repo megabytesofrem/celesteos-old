@@ -146,9 +146,8 @@ void isr_install() {
 void isr_handler(registers_t *regs) {
 	char *msg = exceptions[regs->int_no];
 
-	vga_setcolor(vga_entry_color(VGA_COLOR_LRED, VGA_COLOR_BLACK));
-	kprintf("[isr.c] exception %s (%d), err code: %d\n", msg, regs->int_no, regs->err_code);
-	kprintf("[isr.c] RIP=%d\n", regs->rip);
+	klog(KLOG_ERROR, "exception %s (%d), err code: %d\n", msg, regs->int_no, regs->err_code);
+	klog(KLOG_ERROR, "RIP=%d\n", regs->rip);
 
 	/* write to port e9 */
 #ifdef LOG_TO_E9
@@ -160,6 +159,4 @@ void isr_handler(registers_t *regs) {
 	e9_write(itoa(regs->rip, 10));
 	e9_write("\n");
 #endif
-
-	vga_setcolor(vga_entry_color(VGA_COLOR_WHITE, VGA_COLOR_BLACK));
 }

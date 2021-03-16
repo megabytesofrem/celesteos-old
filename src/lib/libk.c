@@ -15,6 +15,49 @@
 #include <kernel/sys/ports.h> /* for outb */
 #endif
 
+
+/**
+ * internal utility functions for printing to the kernel log
+ */
+
+void __kprintc(char c) {
+	vga_putchar(c);
+	#ifdef LOG_TO_E9
+		outb(0xE9, c);
+	#endif
+}
+
+void __kprints(char *s) {
+	while (*s != 0) {
+		__kprintc(*s);
+		*s++;
+	}
+}
+
+void __kprintd(int d) {
+	char* s = itoa(d, 10);
+
+	while (*s != 0) {
+		vga_putchar(*s);
+		#ifdef LOG_TO_E9
+			outb(0xE9, *s);
+		#endif
+		*s++;
+	}
+}
+
+void __kprint_unsigned(uint64_t ud) {
+	char *s = utoa(ud);
+
+	while (*s != 0) {
+		vga_putchar(*s);
+		#ifdef LOG_TO_E9
+			outb(0xE9, *s);
+		#endif
+		*s++;
+	}
+}
+
 void kputs(char *s) {
 	size_t len = strlen(s);
 	s[len] = '\0';
@@ -28,53 +71,44 @@ void kprintf(const char *fmt, ...) {
 	va_list args;
 	va_start(args, fmt);
 
+
 	while (fmt[i]) {
 		if (fmt[i] == '%' && fmt[i+1] == 'c') {
 			char c = va_arg(args, int);
-			vga_putchar(c);
+			__kprintc(c);
 			i++;
 		}
 		else if (fmt[i] == '%' && fmt[i+1] == 'd') {
 			int d = va_arg(args, int);
-			char* s = itoa(d, 10);
-
-			while (*s != '\0') {
-				vga_putchar(*s++);
-			}
+			__kprintd(d);
 			i++;
 		}
 		else if (fmt[i] == '%' && fmt[i+1] == 'u') {
 			i++;
 			if (fmt[i+1] == 'd') {
 				uint64_t ud = va_arg(args, uint64_t);
-				char *s = utoa(ud);
-
-				while (*s != '\0') {
-					vga_putchar(*s++);
-				}
+				__kprint_unsigned(ud);
 				i++;
 			}
 			else if (fmt[i+1] == 'l') {
 				uint64_t ul = va_arg(args, uint64_t);
-				char *s = utoa(ul);
-
-				while (*s != '\0') {
-					vga_putchar(*s++);
-				}
+				__kprint_unsigned(ul);
 				i++;
 			}
 		}
 		else if (fmt[i] == '%' && fmt[i+1] == 's') {
 			char *s = va_arg(args, char*);
-			for (size_t j = 0; j < strlen(s); j++)
-				vga_putchar(s[j]);
+			__kprints(s);
 			i++;
 		}
 		else if (fmt[i] == '%' && fmt[i+1] == '%') {
 			vga_putchar('%');
+			#ifdef LOG_TO_E9
+				outb(0xE9, '%');
+			#endif
 		}
 		else {
-			vga_putchar(fmt[i]);
+			__kprintc(fmt[i]);
 		}
 		i++;
 	}
@@ -82,27 +116,74 @@ void kprintf(const char *fmt, ...) {
 	va_end(args);
 }
 
-void klog(klog_level level, const char *s) {
+void klog(klog_level level, const char *fmt, ...) {
+	int i = 0;
 
-	// TODO: replace vga_write calls with kprintf
+	/* switch on the level */
 	switch (level) {
 		case KLOG_INFO:
-			vga_setcolor(vga_entry_color(VGA_COLOR_LGREY, VGA_COLOR_BLACK));
+			vga_setcolor(vga_entry_color(VGA_COLOR_GREY, VGA_COLOR_BLACK));
+			vga_write("[INFO] ", strlen("[INFO] "));
 			break;
 		case KLOG_WARN:
-			vga_setcolor(vga_entry_color(VGA_COLOR_LBROWN, VGA_COLOR_BLACK));
+			vga_setcolor(vga_entry_color(VGA_COLOR_BROWN, VGA_COLOR_BLACK));
+			vga_write("[WARN] ", strlen("[WARN] "));
 			break;
 		case KLOG_ERROR:
-			vga_setcolor(vga_entry_color(VGA_COLOR_LRED, VGA_COLOR_BLACK));
+			vga_setcolor(vga_entry_color(VGA_COLOR_RED, VGA_COLOR_BLACK));
+			vga_write("[ERROR] ", strlen("[ERROR] "));
 			break;
-		default: break;
+		case KLOG_NONE:
+			/* No prefix */
+			vga_setcolor(vga_entry_color(VGA_COLOR_WHITE, VGA_COLOR_BLACK));
+			break;
 	}
 
-	kputs(s);
+	va_list args;
+	va_start(args, fmt);
 
-#ifdef LOG_TO_E9
-	while (*s != '\0') {
-		outb(0xE9, *s++);
+	vga_setcolor(vga_entry_color(VGA_COLOR_WHITE, VGA_COLOR_BLACK));
+
+	while (fmt[i]) {
+		if (fmt[i] == '%' && fmt[i+1] == 'c') {
+			char c = va_arg(args, int);
+			__kprintc(c);
+			i++;
+		}
+		else if (fmt[i] == '%' && fmt[i+1] == 'd') {
+			int d = va_arg(args, int);
+			__kprintd(d);
+			i++;
+		}
+		else if (fmt[i] == '%' && fmt[i+1] == 'u') {
+			i++;
+			if (fmt[i+1] == 'd') {
+				uint64_t ud = va_arg(args, uint64_t);
+				__kprint_unsigned(ud);
+				i++;
+			}
+			else if (fmt[i+1] == 'l') {
+				uint64_t ul = va_arg(args, uint64_t);
+				__kprint_unsigned(ul);
+				i++;
+			}
+		}
+		else if (fmt[i] == '%' && fmt[i+1] == 's') {
+			char *s = va_arg(args, char*);
+			__kprints(s);
+			i++;
+		}
+		else if (fmt[i] == '%' && fmt[i+1] == '%') {
+			vga_putchar('%');
+			#ifdef LOG_TO_E9
+				outb(0xE9, '%');
+			#endif
+		}
+		else {
+			__kprintc(fmt[i]);
+		}
+		i++;
 	}
-#endif
+
+	va_end(args);
 }

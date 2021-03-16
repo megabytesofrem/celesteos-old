@@ -15,10 +15,26 @@
  */
 size_t strlen(const char *s) {
 	size_t i = 0;
-	while (*s++ != '\0')
+	while (*s++ != 0)
 		i++;
 
 	return i;
+}
+
+/**
+ * strcmp - compares two strings character by character
+ * @param s1: the first string to compare against
+ * @param s2: the second string to compare against
+ * 
+ * @return 0 if strings are equal, non-zero otherwise
+ */
+size_t strcmp(const char *s1, const char *s2) {
+	while (*s1 != 0 && (*s1 == *s2)) {
+		s1++;
+		s2++;
+	}
+
+	return *(const unsigned char*)s1 - *(const unsigned char*)s2;
 }
 
 /**
@@ -48,6 +64,12 @@ char *strcpy(char *dest, const char *src) {
 	return saved;
 }
 
+/**
+ * strncpy - copy up to count characters from the NULL terminate string src into dest
+ * @param dest: the destination string
+ * @param src: the source string to copy
+ * @param count: the amount of characters to copy 
+ */
 char *strncpy(char *dest, const char *src, size_t count) {
 	char *tmp = dest;
 
@@ -101,6 +123,8 @@ void *memcpy(void *dest, const void *src, size_t count) {
 }
 
 /* non standard conversion functions */
+
+
 
 char *itoa(int n, int base) {
 	static char text[32];

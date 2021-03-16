@@ -1,13 +1,12 @@
-#ifndef MM_PMM_H
-#define MM_PMM_H
+#ifndef _MM_PMM_H
+#define _MM_PMM_H
 
 #include <multiboot.h>
 #include <common.h>
 
-#define PMM_PAGE_SIZE 4096			/* 4KiB pages are default */
+#include "bitmap.h"
 
-#define BITMAP_BIT_FREE 0x0			/* a free bit is marked with 0x00 */
-#define BITMAP_BIT_USED 0x1			/* a bit that is in use is marked with 0x1 */
+#define PMM_PAGE_SIZE 4096			/* 4KiB pages are default */
 
 typedef struct __attribute__((packed)) {
 	unsigned int size;
@@ -18,4 +17,9 @@ typedef struct __attribute__((packed)) {
 } multiboot_entry_t;
 
 void pmm_init(multiboot_info_t *info);
+void* pmm_alloc(size_t count);
+void pmm_free(void *ptr, size_t count);
+
+/* dont call unless using <512M RAM as it WILL crash QEMU/VS Code */
+void print_bitmap();
 #endif

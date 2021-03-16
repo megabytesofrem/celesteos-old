@@ -12,19 +12,19 @@
 
 #define BOOT_MSG "Booting CelesteOS..\n\n"
 
-const char* DEBUG_MSGS[2] = { "[kmain.c] loaded at KERN_HIGH_VMA, 0xffffffff80000000\n", \
-							  "[kmain.c] initialized vga at 0xb8000\n" };
+const char* DEBUG_MSGS[2] = { "kmain.c: loaded at KERN_HIGH_VMA, 0xffffffff80000000\n", \
+							  "kmain.c: initialized vga at 0xb8000\n" };
 
 int kmain(multiboot_info_t *info) {
 	vga_init();
 
 	klog(KLOG_INFO, BOOT_MSG);
 
-	/* debug */
+	// /* debug */
 	// for (int i = 0; i < 2; i++)
 	// 	klog(KLOG_INFO, DEBUG_MSGS[i]);
 
-	klog(KLOG_WARN, "we are going to cause a PF :D\n");
+	//klog(KLOG_WARN, "we are going to cause a PF :D\n");
 	/* install ISRs */
 	isr_install();
 
@@ -32,8 +32,21 @@ int kmain(multiboot_info_t *info) {
 	// int *a = (int *)-1;
 	// *a = 1;
 
+	// test pmm
 	pmm_init(info);
-	klog(KLOG_INFO, "[kmain.c] init pmm complete\n");
+	void *three = pmm_alloc(3);
+	void *one = pmm_alloc(1);
+
+	// TODO: add %x formatting to kprintf, klog
+	kprintf("one is at address %ud\n", &one);
+	kprintf("three is at address %ud\n", &three);
+
+
+	pmm_free(three, 3);
+	pmm_free(one, 1);
+
+
+	klog(KLOG_INFO, "kmain.c: init pmm complete\n");
 
 	for (;;) ;
 }
