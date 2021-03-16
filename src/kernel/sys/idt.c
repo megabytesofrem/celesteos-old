@@ -28,4 +28,7 @@ void idt_load() {
 
 	/* Load the IDT */
 	asm volatile("lidtq %0" : : "m"(ptr));
+
+	/* Store the interrupt flag */
+	asm volatile("sti");
 }
