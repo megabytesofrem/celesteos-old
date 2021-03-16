@@ -140,6 +140,7 @@ void isr_install() {
 	idt_setgate(30, isr30, 0x8f);
 	idt_setgate(31, isr31, 0x8f);
 
+	klog(KLOG_INFO, "attempting to load IDT tables\n");
 	idt_load();
 }
 
@@ -150,13 +151,13 @@ void isr_handler(registers_t *regs) {
 	klog(KLOG_ERROR, "RIP=%d\n", regs->rip);
 
 	/* write to port e9 */
-#ifdef LOG_TO_E9
-	e9_write("exception ");
-	e9_write(msg);
-	e9_write(", err code: ");
-	e9_write(itoa(regs->err_code, 10));
-	e9_write(", RIP=");
-	e9_write(itoa(regs->rip, 10));
-	e9_write("\n");
-#endif
+// #ifdef LOG_TO_E9
+// 	e9_write("exception ");
+// 	e9_write(msg);
+// 	e9_write(", err code: ");
+// 	e9_write(itoa(regs->err_code, 10));
+// 	e9_write(", RIP=");
+// 	e9_write(itoa(regs->rip, 10));
+// 	e9_write("\n");
+// #endif
 }

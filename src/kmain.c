@@ -29,24 +29,22 @@ int kmain(multiboot_info_t *info) {
 	isr_install();
 
 	/* cause a page fault since -1 is unmapped */
-	// int *a = (int *)-1;
-	// *a = 1;
+	int *a = (int *)-1;
+	a = 1;
+
+	// ISR IS NEVER CALLED 
+	
 
 	// test pmm
-	pmm_init(info);
-	void *three = pmm_alloc(3);
-	void *one = pmm_alloc(1);
+	//pmm_init(info);
+	// void *one = pmm_alloc(50);
 
-	// TODO: add %x formatting to kprintf, klog
-	kprintf("one is at address %ud\n", &one);
-	kprintf("three is at address %ud\n", &three);
+	// // TODO: add %x formatting to kprintf, klog
+	// kprintf("one is at address %ud\n", &one);
+	// print_bitmap();
 
-
-	pmm_free(three, 3);
-	pmm_free(one, 1);
+	// pmm_free(one, 50);
 
 
 	klog(KLOG_INFO, "kmain.c: init pmm complete\n");
-
-	for (;;) ;
 }

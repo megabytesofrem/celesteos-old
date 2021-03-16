@@ -2,6 +2,8 @@
  * pmm.c -- Physical memory manager for the kernel
  * 
  * How we allocate:
+ * The physical memory manager is a bitmap in memory. If a bit is set, we know
+ * that there is a page there, and if it is unset then we know it is unallocated memory.
  * 
  * 1) The memory map entries are looped through until we find the total amount
  *    of physical memory in the system.
@@ -56,7 +58,7 @@ void pmm_init(multiboot_info_t *info) {
 		if (mmap_entries[i].length >= bitmap_size) {
 			// we have a location with enough free pages to store our bitmap
 			bitmap = (void *)(mmap_entries[i].addr); // offset by 0xffff800000000000 later when we have higher half direct mapping
-			memset(bitmap, 0xff, bitmap_size);
+			memset(bitmap, 0xff, bitmap_size); // 1111 1111 (0xff)
 
 			// shrink the memory map
 			mmap_entries[i].length -= bitmap_size;
@@ -119,10 +121,10 @@ void print_bitmap() {
 	for (int i = 0; i < bitmap_size; i++) {
 		uint8_t *m = ((uint8_t*)bitmap)[i];
 		//if (bitmap_test(m, m[i]) == 1) {
-		kprintf("%d,", m[i]);
+		e9_write(itoa(m[i], 2));
 		//}
 	}
-	kprintf("\n");
+	//kprintf("\n");
 }
 
 void* pmm_alloc(size_t count) {
@@ -147,12 +149,13 @@ void* pmm_alloc(size_t count) {
 
 void pmm_free(void *ptr, size_t count) {
 	size_t page = (size_t)ptr / PMM_PAGE_SIZE;
+	uint8_t loc = *(uint8_t*)bitmap;
 
 	klog(KLOG_INFO, "freeing %d pages\n", count);
 
 	// Loop through the bitmap and unset the bits for our page
 	for (size_t i = page; i < page + count; i++) {
-		klog(KLOG_INFO, "freed page %d/%d\n", i, count);
+		klog(KLOG_INFO, "freed page %d/%d at %d\n", i+1, count, loc);
 		bitmap_unset(*(uint8_t*)bitmap, i);
 	}
 }

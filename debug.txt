@@ -1,0 +1,5 @@
+Booting CelesteOS..
+
+total mem: 536345600
+number of entries: 6
+kmain.c: init pmm complete
