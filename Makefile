@@ -37,7 +37,7 @@ kernel.elf: ${OBJECTS}
 	nasm -i src/kernel/asm -felf64 -F dwarf -g $< -o $@
 
 run: celesteos.iso
-	@qemu-system-x86_64 -smp cpus=4 -cdrom build/celesteos.iso -m 512M -no-reboot -debugcon stdio -d int -D qemu.log -no-shutdown -vga vmware
+	@qemu-system-x86_64 -smp cpus=4 -cdrom build/celesteos.iso -m 512M -no-reboot -debugcon stdio -d int -D qemu.log -no-shutdown -vga vmware -s
 
 clean:
 	-rm kernel.elf

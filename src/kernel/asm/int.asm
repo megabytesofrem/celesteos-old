@@ -31,6 +31,25 @@ global isr29		; Reserved
 global isr30		; Reserved
 global isr31		; Reserved
 
+; IRQs
+global irq0			; PIC Timer Interrupt
+global irq1			; Keyboard Interrupt (PS/2)
+global irq2			; Cascade (used internally by the two PICs, never raised)
+global irq3			; COM2 (if enabled)
+global irq4			; COM1 (if enabled)
+global irq5			; LPT2 (if enabled)
+global irq6			; Floppy Disk
+global irq7			; LPT1 / Unreliable "spurious" interrupt (usually)
+global irq8			; CMON real-time clock (if enabled)
+global irq9			; Free for peripherals / legacy SCSI / NIC
+global irq10		; Free for peripherals / SCSI / NIC
+global irq11		; Free for peripherals / SCSI / NIC
+global irq12		; PS/2 mouse
+global irq13		; FPU / Coprocessor / Inter-processor
+global irq14		; Primary ATA hard disk
+global irq15		; Secondary ATA Hard Disk
+
+extern irq_handler
 extern isr_handler
 
 %macro pushaq 0
@@ -77,6 +96,17 @@ isr_common:
 	xor rax, rax	; zero out rax
 	mov rdi, rsp	
 	call isr_handler
+	popaq
+
+	add rsp, 16
+	iretq			; return from interrupt
+
+irq_common:
+	pushaq			; push all registers
+	cld				; clear direction flag
+	xor rax, rax	; zero out rax
+	mov rdi, rsp	
+	call irq_handler
 	popaq
 
 	add rsp, 16
@@ -273,3 +303,84 @@ isr31:
 	push byte 0
 	push byte 31
 	jmp isr_common
+
+; IRQs
+irq0:
+	push byte 0
+	push byte 32
+	jmp irq_common
+
+irq1:
+	push byte 1
+	push byte 33
+	jmp irq_common
+
+irq2:
+	push byte 2
+	push byte 34
+	jmp irq_common
+
+irq3:
+	push byte 3
+	push byte 35
+	jmp irq_common
+
+irq4:
+	push byte 4
+	push byte 36
+	jmp irq_common
+
+irq5:
+	push byte 5
+	push byte 37
+	jmp irq_common
+
+irq6:
+	push byte 6
+	push byte 38
+	jmp irq_common
+
+irq7:
+	push byte 7
+	push byte 39
+	jmp irq_common
+
+irq8:
+	push byte 8
+	push byte 40
+	jmp irq_common
+
+irq9:
+	push byte 9
+	push byte 41
+	jmp irq_common
+
+irq10:
+	push byte 10
+	push byte 42
+	jmp irq_common
+
+irq11:
+	push byte 11
+	push byte 43
+	jmp irq_common
+
+irq12:
+	push byte 12
+	push byte 44
+	jmp irq_common
+
+irq13:
+	push byte 13
+	push byte 45
+	jmp irq_common
+
+irq14:
+	push byte 14
+	push byte 46
+	jmp irq_common
+
+irq15:
+	push byte 15
+	push byte 47
+	jmp irq_common

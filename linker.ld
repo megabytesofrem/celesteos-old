@@ -3,7 +3,8 @@ OUTPUT_FORMAT(elf64-x86-64)
 ENTRY(_start)
 SECTIONS
 {
-    kern_virt_offset = 0xffffffff80000000;
+    /* put the kernel at 2 MB */
+    kern_virt_offset = 0xffffffff80200000;
 
     /* Multiboot section */
     . = 0x100000;
