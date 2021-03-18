@@ -5,7 +5,7 @@
 #define VGA_TEXTMODE_WIDTH  80
 #define VGA_TEXTMODE_HEIGHT 25
 
-typedef enum {
+enum vga_color {
 	VGA_COLOR_BLACK = 0,
 	VGA_COLOR_BLUE = 1,
 	VGA_COLOR_GREEN = 2,
@@ -25,9 +25,9 @@ typedef enum {
 	VGA_COLOR_LBROWN = 14,
 	VGA_COLOR_WHITE = 15
 
-} vga_color_t;
+};
 
-static inline uint16_t vga_entry_color(vga_color_t fg, vga_color_t bg) {
+static inline uint16_t vga_entry_color(enum vga_color fg, enum vga_color bg) {
     return fg | bg << 4;
 }
 

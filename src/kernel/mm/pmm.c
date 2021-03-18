@@ -14,8 +14,7 @@
  * 		Harry (harrego)
  */
 
-
-#include <driver/vga.h>
+#include <device/vga.h>
 #include <lib/libk.h>
 #include <lib/string.h>
 
@@ -31,21 +30,21 @@ uint64_t total_memory;
 
 void pmm_init(multiboot_info_t *info) {
 	total_memory = 0;
-	multiboot_entry_t *mmap_entries = (multiboot_entry_t*)info->mmap_addr;
 
-	int nentries = (info->mmap_length / sizeof(multiboot_entry_t));
+	/* get total entries in the memory map */
+	struct multiboot_entry *mmap_entries = (struct multiboot_entry*)info->mmap_addr;
+
+	int nentries = (info->mmap_length / sizeof(struct multiboot_entry));
 
 	// 1. calculate size of the bitmap
 	for (size_t i = 0; i < nentries; i++) {
-		// loop through all mmap_entries in the memory map
 		if (mmap_entries[i].type == MULTIBOOT_MEMORY_AVAILABLE)
 			total_memory += mmap_entries[i].length;
 	}
 
 	// calculate size of the bitmap
-	// TODO: round up
 	size_t factor = PMM_PAGE_SIZE;
-	bitmap_size = total_memory / factor + ((total_memory % factor) > 0 ? 1 : 0); /*/ sizeof(uint8_t)*/;
+	bitmap_size = (total_memory + factor - 1) / factor;
 
 	// find a location with enough free pages
 	for (size_t i = 0; i < nentries; i++) {
@@ -73,7 +72,7 @@ void pmm_init(multiboot_info_t *info) {
 
 		// set all "blocks" in the bitmap to free
 		for (uintptr_t j = 0; j < mmap_entries[i].length; j += PMM_PAGE_SIZE) {
-			bitmap_unset(*(uint8_t*)bitmap, (mmap_entries[i].addr + j) / PMM_PAGE_SIZE);
+			bitmap_unset((uint8_t*)bitmap, (mmap_entries[i].addr + j) / PMM_PAGE_SIZE);
 		}
 	}
 	klog(KLOG_INFO, "total mem: %d\n", total_memory);
@@ -91,19 +90,20 @@ static void* inner_alloc(size_t count, size_t limit) {
 
 	size_t p = 0;
 
-	while (last_page < limit) {
-		if (!bitmap_test(*(uint8_t*)bitmap, last_page++)) {
+	for (size_t i = 0; i < limit; i++) {
+		if (!bitmap_test((uint8_t*)bitmap, i)) {
 			// If the internal counter is the count of pages, set the page as used
 			if (++p == count) {
-				size_t page = last_page - count;
+				size_t page = i - count;
 
 				// Set the page as used
-				for (size_t i = page; i < last_page; i++) {
-					bitmap_set(*(uint8_t*)bitmap, i);
+				for (size_t j = page; j < i; i++) {
+					bitmap_set((uint8_t*)bitmap, j);
 				}
 
 				// return the address of the page
-				return (void *)(page * PMM_PAGE_SIZE);
+				void *addr = (void *)(page * PMM_PAGE_SIZE);
+				return addr;
 			}
 		}
 		else {
@@ -113,16 +113,6 @@ static void* inner_alloc(size_t count, size_t limit) {
 
 	// If we get here, we couldn't allocate a page so just return NULL
 	return NULL;
-}
-
-void print_bitmap() {	
-	for (int i = 0; i < bitmap_size; i++) {
-		uint8_t *m = ((uint8_t*)bitmap)[i];
-		//if (bitmap_test(m, m[i]) == 1) {
-		kprintf("%d,", m[i]);
-		//}
-	}
-	kprintf("\n");
 }
 
 void* pmm_alloc(size_t count) {
@@ -137,7 +127,9 @@ void* pmm_alloc(size_t count) {
 	klog(KLOG_INFO, "allocated %d pages\n", count);
 
 	void *addr = inner_alloc(count, total_memory / PMM_PAGE_SIZE);
-	if (addr = NULL) {
+	printk("addr returned: %ul\n", addr);
+
+	if (addr == NULL) {
 		last_page = 0;
 		addr = inner_alloc(count, l);
 	}
@@ -153,6 +145,6 @@ void pmm_free(void *ptr, size_t count) {
 	// Loop through the bitmap and unset the bits for our page
 	for (size_t i = page; i < page + count; i++) {
 		klog(KLOG_INFO, "freed page %d/%d\n", i, count);
-		bitmap_unset(*(uint8_t*)bitmap, i);
+		bitmap_unset((uint8_t*)bitmap, i);
 	}
 }

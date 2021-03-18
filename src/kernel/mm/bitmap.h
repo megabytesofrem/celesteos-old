@@ -4,9 +4,20 @@
 #include <common.h>
 
 /* Bit manipulation functions */
-#define bitmap_set(bitmap, b)	( (bitmap) |=  (1UL<<(b)) )
-#define bitmap_unset(bitmap, b)	( (bitmap) &= ~(1UL<<(b)) )
-#define bitmap_flip(bitmap, b)	( (bitmap) ^=  (1UL<<(b)) )
-#define bitmap_test(bitmap, b)	(!! (bitmap) & (1UL<<(b)) )
+static inline void bitmap_set(uint8_t *bitmap, size_t idx) {
+	bitmap[idx / 8] |= 1 << (idx % 8);
+}
+
+static inline void bitmap_unset(uint8_t *bitmap, size_t idx) {
+	bitmap[idx / 8] &= ~(1 << (idx % 8));
+}
+
+static inline void bitmap_flip(uint8_t *bitmap, size_t idx) {
+	bitmap[idx / 8] ^= 1 << (idx % 8);
+}
+
+static inline int bitmap_test(uint8_t *bitmap, size_t idx) {
+	return !!(bitmap[idx / 8] & 1 << (idx % 8));
+}
 
 #endif
