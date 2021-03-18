@@ -18,7 +18,8 @@ const char* DEBUG_MSGS[2] = { "kmain.c: loaded at KERN_HIGH_VMA, 0xffffffff80000
 							  "kmain.c: initialized vga at 0xb8000\n" };
 
 int kmain(multiboot_info_t *info) {
-
+	isr_install();
+	
 	pmm_init(info);
 	struct vmm_pagemap map = create_pagemap();
 
@@ -37,12 +38,19 @@ int kmain(multiboot_info_t *info) {
 	klog(KLOG_INFO, "vga driver initialized at 0xb8000..\n");
 
 	klog(KLOG_INFO, "setting up interrupts..\n");
-	isr_install();
 
 	klog(KLOG_INFO, BOOT_MSG);
 
 	int *a = (int *)0x1000;
-	*a = 1;
+	*a = 69;
+	printk("value of a is: %d\n", *a);
+
+	vmm_unmap_page(&map, 0x10000);
+	*a = 420;
 	
+	// /* this will page fault */
+	// int *pf = (int *)-1;
+	// *pf = 420;
+
 	for (;;) ;
 }
