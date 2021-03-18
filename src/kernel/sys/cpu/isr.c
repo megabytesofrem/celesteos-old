@@ -9,11 +9,16 @@
 #include <lib/libk.h>
 #include <lib/string.h>
 #include <kernel/sys/e9.h>
-#include <driver/vga.h>
+#include <device/vga.h>
 
 #include "isr.h"
 #include "idt.h"
-#include "ports.h"
+
+#include "pic.h"
+
+#include "isr.h"
+#include "idt.h"
+#include "../ports.h"
 
 const char* exceptions[32] = {
 	"Division by Zero",				/*0*/
@@ -141,27 +146,30 @@ void isr_install() {
 	idt_setgate(31, isr31, 0x8f);
 
 	/* Install the IRQs */
-	idt_setgate(32,  isr0,  0x8e); /* 0x8e = INTERRUPT_GATE */
-	idt_setgate(33,  isr1,  0x8e);
-	idt_setgate(34,  isr2,  0x8e);
-	idt_setgate(35,  isr3,  0x8e);
-	idt_setgate(36,  isr4,  0x8e);
-	idt_setgate(37,  isr5,  0x8e);
-	idt_setgate(38,  isr6,  0x8e);
-	idt_setgate(39,  isr7,  0x8e);
-	idt_setgate(40,  isr8,  0x8e);
-	idt_setgate(41,  isr9,  0x8e);
-	idt_setgate(42, isr10, 0x8e);
-	idt_setgate(43, isr11, 0x8e);
-	idt_setgate(44, isr12, 0x8e);
-	idt_setgate(45, isr13, 0x8e);
-	idt_setgate(46, isr14, 0x8e);
-	idt_setgate(47, isr15, 0x8e);
+	idt_setgate(32,  irq0,  0x8e); /* 0x8e = INTERRUPT_GATE */
+	idt_setgate(33,  irq1,  0x8e);
+	idt_setgate(34,  irq2,  0x8e);
+	idt_setgate(35,  irq3,  0x8e);
+	idt_setgate(36,  irq4,  0x8e);
+	idt_setgate(37,  irq5,  0x8e);
+	idt_setgate(38,  irq6,  0x8e);
+	idt_setgate(39,  irq7,  0x8e);
+	idt_setgate(40,  irq8,  0x8e);
+	idt_setgate(41,  irq9,  0x8e);
+	idt_setgate(42, irq10, 0x8e);
+	idt_setgate(43, irq11, 0x8e);
+	idt_setgate(44, irq12, 0x8e);
+	idt_setgate(45, irq13, 0x8e);
+	idt_setgate(46, irq14, 0x8e);
+	idt_setgate(47, irq15, 0x8e);
 
 	idt_load();
+
+	/* Remap the PIC */
+	pic_remap(0x20, 0x28);
 }
 
-void irq_handler(registers_t *regs) {
+void irq_handler(struct registers *regs) {
 	/* TODO: determine which IRQ and handle it */
 
 	/* Send EOI to let the PIC know the interrupt is done */
@@ -169,7 +177,7 @@ void irq_handler(registers_t *regs) {
 	outb(0x20, 0x20);
 }
 
-void isr_handler(registers_t *regs) {
+void isr_handler(struct registers *regs) {
 	char *msg = exceptions[regs->int_no];
 
 	klog(KLOG_ERROR, "exception %s (%d), err code: %d\n", msg, regs->int_no, regs->err_code);

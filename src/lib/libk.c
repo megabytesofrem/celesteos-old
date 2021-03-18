@@ -6,7 +6,7 @@
  * 		Harry (harrego)
  */
 
-#include <driver/vga.h>
+#include <device/vga.h>
 #include <lib/string.h>
 
 #include "libk.h"
@@ -65,7 +65,7 @@ void kputs(char *s) {
 	vga_write(s, len);
 }
 
-void kprintf(const char *fmt, ...) {
+void printk(const char *fmt, ...) {
 	int i = 0;
 
 	va_list args;
@@ -116,7 +116,7 @@ void kprintf(const char *fmt, ...) {
 	va_end(args);
 }
 
-void klog(klog_level level, const char *fmt, ...) {
+void klog(enum klog_level level, const char *fmt, ...) {
 	int i = 0;
 
 	/* switch on the level */

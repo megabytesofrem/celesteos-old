@@ -4,7 +4,8 @@ ENTRY(_start)
 SECTIONS
 {
     /* put the kernel at 2 MB */
-    kern_virt_offset = 0xffffffff80200000;
+    /*kern_virt_offset = 0xffffffff80200000;*/
+    kern_virt_offset = 0xffffffff80000000;
 
     /* Multiboot section */
     . = 0x100000;

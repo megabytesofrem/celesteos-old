@@ -7,7 +7,7 @@
  */
 #include "idt.h"
 
-idt_descriptor_t idt[256];
+struct idt_entry idt[256];
 
 void idt_setgate(int entry, uint64_t handler, int typeattr) {
 	/* Create the entry in the IDT */
@@ -22,7 +22,7 @@ void idt_setgate(int entry, uint64_t handler, int typeattr) {
 
 void idt_load() {
 	/* Fill the IDT descriptor */
-	idt_ptr_t ptr;
+	struct idt_pointer ptr;
 	ptr.addr = (uint64_t)idt;
 	ptr.size = sizeof(idt) - 1;
 

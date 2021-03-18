@@ -1,15 +1,17 @@
 %define KERNEL_HIGH_VMA 0xFFFFFFFF80000000
-%include "gdt.asm"
 
 ; Multiboot header
-MBALIGN	equ 1 << 0				; align loaded modules on page boundaries
-MEMINFO	equ 1 << 1				; provide memory map info
-FLAGS	equ MBALIGN | MEMINFO	; multiboot flags
-MAGIC	equ 0x1BADB002			; magic number
-CHECKSUM equ -(MAGIC + FLAGS)	; checksum, prove we are multiboot
+MB_ALIGN	equ 1 << 0						; align loaded modules on page boundaries
+MB_MEMINFO	equ 1 << 1						; provide memory map info
+
+; set MB_VIDEOMODE equ 1 << 2 later when we want GRUB to setup a framebuffer for us
+
+FLAGS	equ MB_ALIGN | MB_MEMINFO			; multiboot flags
+MAGIC	equ 0x1BADB002						; magic number
+CHECKSUM equ -(MAGIC + FLAGS)				; checksum, prove we are multiboot
 
 section .multiboot
-align 4							; multiboot section is aligned by 4 bytes
+align 4										; multiboot section is aligned by 4 bytes
 	dd MAGIC
 	dd FLAGS
 	dd CHECKSUM
@@ -32,6 +34,8 @@ stack:
 		dq 0
 	%endrep
 %endmacro
+
+section .data
 
 section .text
 global _start
@@ -96,10 +100,13 @@ higher_half:
 	cli
 .hang: hlt
 	jmp .hang
-.end
+;.end
 
 section .data
-; page table
+;
+; Define a static page table in Assembly just for now
+; This should map 1 GB total
+;
 align 4096
 p4_table:
 	; map lower half of memory
@@ -119,4 +126,58 @@ p3_table_high:
 	dq p2_table + 0x3 - KERNEL_HIGH_VMA
 	dq 0
 p2_table:
-	gen_pd_2mb 0, 10, 502
+	; identity map 1 GB
+	;gen_pd_2mb 0, 10, 502
+	gen_pd_2mb 0, 512, 0
+;
+; Define a static GDT in Assembly
+; We need this (i think) so we can get into higher half mode, this will be replaced in C.
+;
+gdt:
+	.null: equ $ - gdt
+		dw 0xFFFF				; limit (low)
+		dw 0					; base (low)
+		db 0					; base (mid)
+		db 0					; access
+		db 0					; granularity
+		db 0					; base (high)
+	
+	.kernel_code: equ $ - gdt
+		dw 0
+		dw 0
+		db 0
+		db 10011010b			; access (exec/read)
+		db 10101111b			; granularity
+		db 0
+
+	.kernel_data: equ $ - gdt
+		dw 0
+		dw 0
+		db 0
+		db 10010010b			; access (read/write)
+		db 0
+		db 0
+
+	.user_code: equ $ - gdt
+		dw 0
+		dw 0
+		db 0
+		db 11111010b			; access (exec/read)
+		db 10101111b			; granularity
+		db 0
+
+	.user_data: equ $ - gdt
+		dw 0
+		dw 0
+		db 0
+		db 10010010b			; access (read/write)
+		db 0
+		db 0
+
+	.ptr:
+		dw $ - gdt - 1			; limit
+		dq gdt					; base
+
+	.ptr_low:					; 32 bit GDT pointer
+		dw $ - gdt - 1			; limit
+		dq gdt - KERNEL_HIGH_VMA; base

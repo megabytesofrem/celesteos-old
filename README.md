@@ -10,3 +10,10 @@ After you have both a custom cross compiler built and copied to your `PATH` envi
 
 ## Why not just use system GCC?
 Using the system GCC compiler is a **horrible** idea when writing an OS since it will try and link in parts of the standard library that we don't have access to, and a whole bunch of other problems. https://wiki.osdev.org/Why_do_I_need_a_Cross_Compiler
+
+## Checklist
+[x] Bootable into long mode
+[ ] IDT, IRQs and ISRs (half done, need to add IRQs)
+[ ] TSS (Task State Segment)
+[x] Physical memory manager (PMM)
+[ ] Virtual machine manager & paging
