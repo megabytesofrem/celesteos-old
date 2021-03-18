@@ -13,7 +13,7 @@ enum vmm_page_flags {
 	PAGE_EXEC = (1 << 3)
 };
 
-struct vmm_pagemap* create_pagemap();
+struct vmm_pagemap create_pagemap();
 void vmm_map_page(struct vmm_pagemap *pagemap, uintptr_t virt, uintptr_t phys, enum vmm_page_flags flags);
 
 #endif

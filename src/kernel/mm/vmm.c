@@ -15,15 +15,19 @@
 #include "pmm.h"
 #include "vmm.h"
 
-struct vmm_pagemap* create_pagemap() {
-	struct vmm_pagemap *map;
+struct vmm_pagemap create_pagemap() {
+	struct vmm_pagemap map = {0};
 	
 	uintptr_t p4 = (uintptr_t)pmm_alloc(1);
 	memset(p4, 0, 0x1000);
 
-	map->pml4 = p4;
+	map.pml4 = p4;
 
 	return map;
+}
+
+static bool table_present(uintptr_t *table, uintptr_t idx) {
+	return ((table[idx]) & 1);
 }
 
 void vmm_map_page(struct vmm_pagemap *pagemap, uintptr_t virt, uintptr_t phys, enum vmm_page_flags flags) {
@@ -54,10 +58,10 @@ void vmm_map_page(struct vmm_pagemap *pagemap, uintptr_t virt, uintptr_t phys, e
 
 	uint64_t phys_mem_map = 0xFFFF800000000000;
 
-	uintptr_t pml4_i = (virt >> ((bits_per_level * (4 - 1)) + 12)) & 0xFF;
-	uintptr_t pml3_i = (virt >> ((bits_per_level * (3 - 1)) + 12)) & 0xFF;
-	uintptr_t pml2_i = (virt >> ((bits_per_level * (2 - 1)) + 12)) & 0xFF;
-	uintptr_t pml1_i = (virt >> ((bits_per_level * (1 - 1)) + 12)) & 0xFF;
+	uintptr_t pml4_i = (virt >> ((bits_per_level * (4 - 1)) + 12)) & 0x1FF;
+	uintptr_t pml3_i = (virt >> ((bits_per_level * (3 - 1)) + 12)) & 0x1FF;
+	uintptr_t pml2_i = (virt >> ((bits_per_level * (2 - 1)) + 12)) & 0x1FF;
+	uintptr_t pml1_i = (virt >> ((bits_per_level * (1 - 1)) + 12)) & 0x1FF;
 
 	uintptr_t *pml4 = pagemap->pml4;
 	uintptr_t *pml3 = NULL;
@@ -65,7 +69,7 @@ void vmm_map_page(struct vmm_pagemap *pagemap, uintptr_t virt, uintptr_t phys, e
 	uintptr_t *pml1 = NULL;
 
 	/* pml4 */
-	if (!(pml4[pml4_i]) & (1 << 0)) {
+	if (!table_present(pml4, pml4_i)) {
 		// create a new PML3 and set it in pml4[pml4_index]
 		uintptr_t p3 = (uintptr_t)pmm_alloc(1);
 		memset(p3, 0, 0x1000);
@@ -80,7 +84,7 @@ void vmm_map_page(struct vmm_pagemap *pagemap, uintptr_t virt, uintptr_t phys, e
 	}
 
 	/* pml3 */
-	if (!(pml3[pml3_i]) & (1 << 0)) {
+	if (!table_present(pml3, pml3_i)) {
 		// create a new PML2 and set it in pml3[pml3_index]
 		uintptr_t p2 = (uintptr_t)pmm_alloc(1);
 		memset(p2, 0, 0x1000);
@@ -95,7 +99,7 @@ void vmm_map_page(struct vmm_pagemap *pagemap, uintptr_t virt, uintptr_t phys, e
 	}
 
 	/* pml2 */
-	if (!(pml2[pml2_i]) & (1 << 0)) {
+	if (!table_present(pml2, pml2_i)) {
 		// create a new PML2 and set it in pml3[pml3_index]
 		uintptr_t p1 = (uintptr_t)pmm_alloc(1);
 		memset(p1, 0, 0x1000);

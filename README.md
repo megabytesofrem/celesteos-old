@@ -13,7 +13,14 @@ Using the system GCC compiler is a **horrible** idea when writing an OS since it
 
 ## Checklist
 [x] Bootable into long mode
-[ ] IDT, IRQs and ISRs (half done, need to add IRQs)
+
+[x] VGA text mode (80x25)
+
+[ ] Interrupts (half done, need to add IRQs)
+
 [ ] TSS (Task State Segment)
+
 [x] Physical memory manager (PMM)
-[ ] Virtual machine manager & paging
+
+[x] Virtual machine manager & paging
+
