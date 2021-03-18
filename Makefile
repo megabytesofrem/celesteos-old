@@ -21,14 +21,14 @@ HEADERS = $(shell find src/ -type f -name '*.h')
 ASMFILE = $(shell find src/ -type f -name '*.s')
 OBJECTS = ${SOURCES:.c=.o} ${ASMFILE:.s=.o}
 
-celesteos.iso: build/kernel.elf
+celesteos.iso: kernel.elf
 	@mkdir -p build/iso/boot/grub
-	@cp build/kernel.elf build/iso/boot/kernel.bin
+	@cp kernel.elf build/iso/boot/kernel.bin
 	@cp grub.cfg build/iso/boot/grub
 	@grub-mkrescue -o build/celesteos.iso build/iso
 	#rm -r build/iso
 
-build/kernel.elf: ${OBJECTS}
+kernel.elf: ${OBJECTS}
 	x86_64-elf-ld -n -T linker.ld -z max-page-size=0x1000 -nostdlib -o $@ ${OBJECTS}
 
 %.o: %.c ${HEADERS}
@@ -38,13 +38,11 @@ build/kernel.elf: ${OBJECTS}
 	nasm -i src/kernel/asm -felf64 -F dwarf -g $< -o $@
 
 run: celesteos.iso
-	@qemu-system-x86_64 -smp cpus=4 -cdrom build/celesteos.iso -m 1G -no-reboot -debugcon stdio -d int -D qemu.log -no-shutdown -vga vmware -s
+	@qemu-system-x86_64 -smp cpus=4 -cdrom build/celesteos.iso -m 1G -no-reboot -monitor stdio -d int -D qemu.log -no-shutdown -vga vmware -s
 
 clean:
-	-rm -rf build/iso
-
-	-rm build/kernel.elf
-	-rm build/celesteos.iso
+	-rm kernel.elf
+	-rm -rf build
 	-rm ${OBJECTS}
 	-rm qemu.log
 	-rm mem

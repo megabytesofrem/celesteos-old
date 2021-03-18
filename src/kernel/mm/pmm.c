@@ -44,7 +44,7 @@ void pmm_init(multiboot_info_t *info) {
 
 	// calculate size of the bitmap
 	size_t factor = PMM_PAGE_SIZE;
-	bitmap_size = (total_memory + factor - 1) / factor;
+	bitmap_size = (total_memory + factor - 1) / factor / 8;
 
 	// find a location with enough free pages
 	for (size_t i = 0; i < nentries; i++) {
@@ -58,8 +58,8 @@ void pmm_init(multiboot_info_t *info) {
 			memset(bitmap, 0xff, bitmap_size);
 
 			// shrink the memory map
-			mmap_entries[i].length -= bitmap_size;
-			mmap_entries[i].addr += bitmap_size;
+			mmap_entries[i].length = (mmap_entries[i].length - bitmap_size) & ~(PMM_PAGE_SIZE - 1);
+			mmap_entries[i].addr = (mmap_entries[i].addr + bitmap_size + PMM_PAGE_SIZE - 1) & ~(PMM_PAGE_SIZE - 1);
 
 			break;
 		}
@@ -71,7 +71,7 @@ void pmm_init(multiboot_info_t *info) {
 			continue;
 
 		// set all "blocks" in the bitmap to free
-		for (uintptr_t j = 0; j < mmap_entries[i].length; j += PMM_PAGE_SIZE) {
+		for (uintptr_t j = 0; j < mmap_entries[i].length & ~0xFFFUL; j += PMM_PAGE_SIZE) {
 			bitmap_unset((uint8_t*)bitmap, (mmap_entries[i].addr + j) / PMM_PAGE_SIZE);
 		}
 	}
@@ -94,10 +94,10 @@ static void* inner_alloc(size_t count, size_t limit) {
 		if (!bitmap_test((uint8_t*)bitmap, i)) {
 			// If the internal counter is the count of pages, set the page as used
 			if (++p == count) {
-				size_t page = i - count;
+				size_t page = i - count + 1;
 
 				// Set the page as used
-				for (size_t j = page; j < i; i++) {
+				for (size_t j = page; j <= i; j++) {
 					bitmap_set((uint8_t*)bitmap, j);
 				}
 
@@ -122,17 +122,10 @@ void* pmm_alloc(size_t count) {
 	 * 2) Iterate over the bitmap, looking for a series (of atleast the requested amount of) contiguous free blocks
 	 * 3) Mark the blocks we have allocated as used
 	 */
-	size_t l = last_page;
-
 	klog(KLOG_INFO, "allocated %d pages\n", count);
 
 	void *addr = inner_alloc(count, total_memory / PMM_PAGE_SIZE);
 	printk("addr returned: %ul\n", addr);
-
-	if (addr == NULL) {
-		last_page = 0;
-		addr = inner_alloc(count, l);
-	}
 
 	return addr;
 }

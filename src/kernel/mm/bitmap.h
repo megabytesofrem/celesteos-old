@@ -17,7 +17,7 @@ static inline void bitmap_flip(uint8_t *bitmap, size_t idx) {
 }
 
 static inline int bitmap_test(uint8_t *bitmap, size_t idx) {
-	return !!(bitmap[idx / 8] & 1 << (idx % 8));
+	return !!(bitmap[idx / 8] & (1 << (idx % 8)));
 }
 
 #endif
